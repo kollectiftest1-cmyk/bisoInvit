@@ -45,11 +45,11 @@ async function request(path, opts = {}) {
 }
 
 export const api = {
-  // ---- Auth contrôleur ----
+  // ---- Auth (admin / super_admin / controller) ----
   login: async (username, password) => {
-    const data = await request('/api/auth/controller/login', {
+    const data = await request('/api/auth/mobile-login', {
       method: 'POST',
-      body: { username, password },
+      body: { user: username, password },
     });
     await AsyncStorage.setItem(TOKEN_KEY, data.token);
     await AsyncStorage.setItem(USER_KEY, JSON.stringify({
@@ -58,7 +58,7 @@ export const api = {
     }));
     return data;
   },
-  me: () => request('/api/controller/me'),
+  me: () => request('/api/auth/mobile-me'),
   logout: clearAuth,
 
   // ---- Scan ----

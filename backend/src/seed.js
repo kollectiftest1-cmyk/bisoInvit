@@ -23,11 +23,22 @@ console.log(`✔ Templates : ${TEMPLATES.length}`);
 
 const username = process.env.ADMIN_DEFAULT_USER || 'admin';
 const password = process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
-const exists = db.prepare('SELECT id FROM admins WHERE username = ?').get(username);
+const exists = db.prepare('SELECT id, role FROM admins WHERE username = ?').get(username);
+const totalAdmins = db.prepare('SELECT COUNT(*) AS n FROM admins').get().n;
+
 if (!exists) {
+  // Premier admin du système → super_admin
+  const role = totalAdmins === 0 ? 'super_admin' : 'admin';
   const hash = bcrypt.hashSync(password, 10);
-  db.prepare('INSERT INTO admins (username, password_hash) VALUES (?, ?)').run(username, hash);
-  console.log(`✔ Admin créé : ${username} / ${password}`);
+  db.prepare('INSERT INTO admins (username, password_hash, role) VALUES (?, ?, ?)').run(username, hash, role);
+  console.log(`✔ ${role} créé : ${username} / ${password}`);
 } else {
-  console.log(`✔ Admin déjà existant : ${username}`);
+  // Si pas de super_admin du tout, promouvoir celui-ci (cas de migration)
+  const hasSuper = db.prepare("SELECT id FROM admins WHERE role = 'super_admin' LIMIT 1").get();
+  if (!hasSuper) {
+    db.prepare("UPDATE admins SET role = 'super_admin' WHERE id = ?").run(exists.id);
+    console.log(`✔ ${username} promu super_admin`);
+  } else {
+    console.log(`✔ Admin déjà existant : ${username} (role=${exists.role})`);
+  }
 }

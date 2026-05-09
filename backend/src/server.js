@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import './db.js';
+import './seed.js';
 import routes from './routes.js';
 import { uploadsDir } from './upload.js';
 

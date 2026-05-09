@@ -114,4 +114,20 @@ try {
   }
 } catch { /* ignore */ }
 
+// Migration : ajout du rôle (super_admin / admin) sur la table admins
+try {
+  const cols = db.prepare("PRAGMA table_info(admins)").all().map((c) => c.name);
+  if (!cols.includes('role')) {
+    db.exec("ALTER TABLE admins ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'");
+  }
+} catch { /* ignore */ }
+
+// Migration : ownership des controllers (qui les a créés)
+try {
+  const cols = db.prepare("PRAGMA table_info(controllers)").all().map((c) => c.name);
+  if (!cols.includes('created_by')) {
+    db.exec("ALTER TABLE controllers ADD COLUMN created_by INTEGER REFERENCES admins(id)");
+  }
+} catch { /* ignore */ }
+
 export default db;

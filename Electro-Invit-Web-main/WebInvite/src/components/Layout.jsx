@@ -13,9 +13,13 @@ export default function Layout() {
           {user && <NavLink to="/admin">Tableau de bord</NavLink>}
           {user && <NavLink to="/admin/bulk">Génération masse</NavLink>}
           {user && <NavLink to="/admin/controllers">Contrôleurs</NavLink>}
+          {user?.role === 'super_admin' && <NavLink to="/admin/admins">Admins</NavLink>}
           {user ? (
             <>
-              <span className="badge badge-muted">{user.username}</span>
+              <span className="badge badge-muted">
+                {user.username}
+                {user.role === 'super_admin' && <strong style={{ marginLeft: 6, color: 'var(--primary)' }}>★</strong>}
+              </span>
               <button className="btn btn-ghost btn-sm" onClick={() => { logout(); navigate('/'); }}>Déconnexion</button>
             </>
           ) : (

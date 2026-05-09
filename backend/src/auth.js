@@ -4,9 +4,11 @@ import db from './db.js';
 const SECRET = process.env.JWT_SECRET || 'dev-jwt';
 
 export function signAdmin(admin) {
-  return jwt.sign({ sub: admin.id, username: admin.username, role: 'admin' }, SECRET, {
-    expiresIn: '7d',
-  });
+  return jwt.sign(
+    { sub: admin.id, username: admin.username, role: admin.role || 'admin' },
+    SECRET,
+    { expiresIn: '7d' }
+  );
 }
 
 export function signController(c) {
@@ -22,9 +24,20 @@ function readToken(req) {
   try { return jwt.verify(token, SECRET); } catch { return null; }
 }
 
+const ADMIN_ROLES = new Set(['admin', 'super_admin']);
+
+/** Admin OU super_admin */
 export function requireAuth(req, res, next) {
   const u = readToken(req);
-  if (!u || u.role === 'controller') return res.status(401).json({ error: 'Token admin requis' });
+  if (!u || !ADMIN_ROLES.has(u.role)) return res.status(401).json({ error: 'Token admin requis' });
+  req.user = u;
+  next();
+}
+
+/** Super admin uniquement */
+export function requireSuperAdmin(req, res, next) {
+  const u = readToken(req);
+  if (!u || u.role !== 'super_admin') return res.status(403).json({ error: 'Réservé au super admin' });
   req.user = u;
   next();
 }
@@ -36,11 +49,11 @@ export function requireController(req, res, next) {
   next();
 }
 
-/** Admin OU contrôleur (pour /scan). Si contrôleur, on attache la liste des events autorisés. */
+/** Admin / super_admin / controller (pour /scan). Si controller, attache la liste des events autorisés. */
 export function requireAdminOrController(req, res, next) {
   const u = readToken(req);
   if (!u) return res.status(401).json({ error: 'Token requis' });
-  if (u.role === 'admin') {
+  if (ADMIN_ROLES.has(u.role)) {
     req.user = u;
     return next();
   }
@@ -52,4 +65,14 @@ export function requireAdminOrController(req, res, next) {
     return next();
   }
   return res.status(401).json({ error: 'Token invalide' });
+}
+
+/** Vérifie qu'un admin (non super) est bien propriétaire d'un évènement. */
+export function canAccessEvent(user, eventId) {
+  if (!user) return false;
+  if (user.role === 'super_admin') return true;
+  if (user.role !== 'admin') return false;
+  const ev = db.prepare('SELECT created_by FROM events WHERE id = ?').get(eventId);
+  if (!ev) return false;
+  return ev.created_by === user.sub;
 }

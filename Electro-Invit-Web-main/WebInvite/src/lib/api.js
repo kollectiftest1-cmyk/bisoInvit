@@ -67,6 +67,11 @@ export const api = {
   createController: (data) => request('/api/controllers', { method: 'POST', body: data }),
   updateController: (id, data) => request(`/api/controllers/${id}`, { method: 'PATCH', body: data }),
   deleteController: (id) => request(`/api/controllers/${id}`, { method: 'DELETE' }),
+  // admins (super_admin only)
+  listAdmins: () => request('/api/admins'),
+  createAdmin: (data) => request('/api/admins', { method: 'POST', body: data }),
+  updateAdmin: (id, data) => request(`/api/admins/${id}`, { method: 'PATCH', body: data }),
+  deleteAdmin: (id) => request(`/api/admins/${id}`, { method: 'DELETE' }),
 };
 
 export function fileUrl(p) {

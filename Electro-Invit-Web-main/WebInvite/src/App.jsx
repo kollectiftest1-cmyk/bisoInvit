@@ -11,6 +11,7 @@ import InvitationForm from './pages/InvitationForm';
 import PublicInvitation from './pages/PublicInvitation';
 import BulkInvitations from './pages/BulkInvitations';
 import ControllersPage from './pages/ControllersPage';
+import AdminsPage from './pages/AdminsPage';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="/admin/events/:id/invitations/new" element={<ProtectedRoute><InvitationForm /></ProtectedRoute>} />
             <Route path="/admin/bulk" element={<ProtectedRoute><BulkInvitations /></ProtectedRoute>} />
             <Route path="/admin/controllers" element={<ProtectedRoute><ControllersPage /></ProtectedRoute>} />
+            <Route path="/admin/admins" element={<ProtectedRoute><AdminsPage /></ProtectedRoute>} />
             <Route path="*" element={<div className="container"><h2>Page introuvable</h2></div>} />
           </Route>
         </Routes>

@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import db from './db.js';
-import { signAdmin, signController, requireAuth, requireAdminOrController, requireController } from './auth.js';
+import { signAdmin, signController, requireAuth, requireAdminOrController, requireController, requireSuperAdmin, canAccessEvent } from './auth.js';
 import { upload, uploadCsv } from './upload.js';
 import { signPayload, verifyPayload } from './qrSign.js';
 import { renderJpeg, renderPng, renderPdf } from './renderer.js';
@@ -27,10 +28,53 @@ router.post('/auth/login', (req, res) => {
   if (!bcrypt.compareSync(password, admin.password_hash))
     return res.status(401).json({ error: 'Identifiants incorrects' });
   const token = signAdmin(admin);
-  res.json({ token, user: { id: admin.id, username: admin.username } });
+  res.json({ token, user: { id: admin.id, username: admin.username, role: admin.role || 'admin' } });
 });
 
-router.get('/auth/me', requireAuth, (req, res) => res.json({ user: req.user }));
+router.get('/auth/me', requireAuth, (req, res) => {
+  const a = db.prepare('SELECT id, username, role FROM admins WHERE id = ?').get(req.user.sub);
+  res.json({ user: a || req.user });
+});
+
+// Login unifié pour le mobile (admin / super_admin / controller)
+router.post('/auth/mobile-login', (req, res) => {
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Données invalides' });
+  const { user, password } = parsed.data;
+
+  // 1) admin / super_admin
+  const admin = db.prepare('SELECT * FROM admins WHERE username = ?').get(user);
+  if (admin && bcrypt.compareSync(password, admin.password_hash)) {
+    const token = signAdmin(admin);
+    // super_admin → tous les events ; admin → ses events
+    const events = (admin.role === 'super_admin')
+      ? db.prepare('SELECT id, title, bride_name, groom_name FROM events ORDER BY created_at DESC').all()
+      : db.prepare('SELECT id, title, bride_name, groom_name FROM events WHERE created_by = ? ORDER BY created_at DESC').all(admin.id);
+    return res.json({
+      token,
+      controller: { id: admin.id, username: admin.username, name: admin.username, role: admin.role || 'admin' },
+      events,
+    });
+  }
+
+  // 2) controller
+  const c = db.prepare('SELECT * FROM controllers WHERE username = ?').get(user);
+  if (c && bcrypt.compareSync(password, c.password_hash)) {
+    const token = signController(c);
+    const events = db.prepare(`
+      SELECT e.id, e.title, e.bride_name, e.groom_name
+      FROM controller_events ce JOIN events e ON e.id = ce.event_id
+      WHERE ce.controller_id = ?
+    `).all(c.id);
+    return res.json({
+      token,
+      controller: { id: c.id, username: c.username, name: c.name, role: 'controller' },
+      events,
+    });
+  }
+
+  return res.status(401).json({ error: 'Identifiants incorrects' });
+});
 
 // ---------- TEMPLATES ----------
 router.get('/templates', (_req, res) => {
@@ -126,8 +170,20 @@ function getEventById(id) {
   };
 }
 
-router.get('/events', (_req, res) => {
-  const rows = db.prepare('SELECT * FROM events ORDER BY created_at DESC').all();
+router.get('/events', (req, res) => {
+  // Si un token admin (non super) est fourni → on limite aux events qu'il a créés.
+  // Sinon (public OU super_admin) → tous les events (compat ascendante).
+  const auth = req.headers.authorization || '';
+  let scopeAdminId = null;
+  if (auth.startsWith('Bearer ')) {
+    try {
+      const u = jwt.verify(auth.slice(7), process.env.JWT_SECRET || 'dev-jwt');
+      if (u.role === 'admin') scopeAdminId = u.sub;
+    } catch { /* token invalide → traité comme public */ }
+  }
+  const rows = scopeAdminId
+    ? db.prepare('SELECT * FROM events WHERE created_by = ? ORDER BY created_at DESC').all(scopeAdminId)
+    : db.prepare('SELECT * FROM events ORDER BY created_at DESC').all();
   res.json(rows.map((r) => ({
     ...r,
     dates: JSON.parse(r.dates_json || '[]'),
@@ -144,6 +200,7 @@ router.get('/events/:id', (req, res) => {
 router.patch('/events/:id', requireAuth, upload.single('couple_photo'), (req, res) => {
   const ev = getEventById(req.params.id);
   if (!ev) return res.status(404).json({ error: 'Événement introuvable' });
+  if (!canAccessEvent(req.user, req.params.id)) return res.status(403).json({ error: 'Accès refusé' });
   const data = parseEventBody(req.body);
   const photo = req.file ? `/uploads/${req.file.filename}` : ev.couple_photo;
   const merged = {
@@ -167,6 +224,7 @@ router.patch('/events/:id', requireAuth, upload.single('couple_photo'), (req, re
 });
 
 router.delete('/events/:id', requireAuth, (req, res) => {
+  if (!canAccessEvent(req.user, req.params.id)) return res.status(403).json({ error: 'Accès refusé' });
   const r = db.prepare('DELETE FROM events WHERE id = ?').run(req.params.id);
   if (!r.changes) return res.status(404).json({ error: 'Introuvable' });
   res.status(204).end();
@@ -191,6 +249,7 @@ router.post('/invitations', requireAuth, (req, res) => {
   const data = parsed.data;
   const ev = getEventById(data.event_id);
   if (!ev) return res.status(404).json({ error: 'Événement introuvable' });
+  if (!canAccessEvent(req.user, data.event_id)) return res.status(403).json({ error: 'Accès refusé sur cet événement' });
   const id = nanoid(12);
   const code = nanoid(16);
   db.prepare(`
@@ -219,11 +278,21 @@ function buildInvitationResponse(id) {
 
 router.get('/invitations', requireAuth, (req, res) => {
   const { event_id } = req.query;
+  const isSuper = req.user.role === 'super_admin';
   let rows;
   if (event_id) {
+    if (!canAccessEvent(req.user, event_id)) return res.status(403).json({ error: 'Accès refusé sur cet événement' });
     rows = db.prepare('SELECT i.*, s.scanned_at FROM invitations i LEFT JOIN scans s ON s.invitation_id = i.id WHERE i.event_id = ? ORDER BY i.created_at DESC').all(event_id);
-  } else {
+  } else if (isSuper) {
     rows = db.prepare('SELECT i.*, s.scanned_at FROM invitations i LEFT JOIN scans s ON s.invitation_id = i.id ORDER BY i.created_at DESC').all();
+  } else {
+    rows = db.prepare(`
+      SELECT i.*, s.scanned_at FROM invitations i
+      LEFT JOIN scans s ON s.invitation_id = i.id
+      JOIN events e ON e.id = i.event_id
+      WHERE e.created_by = ?
+      ORDER BY i.created_at DESC
+    `).all(req.user.sub);
   }
   res.json(rows);
 });
@@ -281,8 +350,10 @@ router.get('/invitations/code/:code/export.jpeg', (req, res) => exportInvitation
 router.get('/invitations/code/:code/export.png',  (req, res) => exportInvitation(req, res, 'png'));
 
 router.delete('/invitations/:id', requireAuth, (req, res) => {
-  const r = db.prepare('DELETE FROM invitations WHERE id = ?').run(req.params.id);
-  if (!r.changes) return res.status(404).json({ error: 'Introuvable' });
+  const inv = db.prepare('SELECT event_id FROM invitations WHERE id = ?').get(req.params.id);
+  if (!inv) return res.status(404).json({ error: 'Introuvable' });
+  if (!canAccessEvent(req.user, inv.event_id)) return res.status(403).json({ error: 'Accès refusé' });
+  db.prepare('DELETE FROM invitations WHERE id = ?').run(req.params.id);
   res.status(204).end();
 });
 
@@ -295,11 +366,15 @@ router.post('/scan', requireAdminOrController, (req, res) => {
   const inv = db.prepare('SELECT * FROM invitations WHERE id = ? AND code = ?').get(payload.invitation_id, payload.code);
   if (!inv) return res.status(404).json({ error: 'Invitation introuvable' });
 
-  // Si contrôleur : vérifier qu'il a accès à l'événement
+  // Si controller : vérifier qu'il a accès à l'événement
   if (req.controller) {
     if (!req.controllerEvents.includes(inv.event_id)) {
       return res.status(403).json({ error: 'Cet événement ne vous est pas affecté' });
     }
+  }
+  // Si admin (non super) : vérifier ownership
+  if (req.user && !canAccessEvent(req.user, inv.event_id)) {
+    return res.status(403).json({ error: 'Accès refusé sur cet événement' });
   }
 
   const existing = db.prepare('SELECT * FROM scans WHERE invitation_id = ?').get(inv.id);
@@ -325,6 +400,9 @@ router.get('/scan/stats', requireAdminOrController, (req, res) => {
   if (req.controller && !req.controllerEvents.includes(event_id)) {
     return res.status(403).json({ error: 'Cet événement ne vous est pas affecté' });
   }
+  if (req.user && !canAccessEvent(req.user, event_id)) {
+    return res.status(403).json({ error: 'Accès refusé sur cet événement' });
+  }
   const total = db.prepare('SELECT COUNT(*) c, COALESCE(SUM(seats),0) s FROM invitations WHERE event_id = ?').get(event_id);
   const scanned = db.prepare(`SELECT COUNT(*) c, COALESCE(SUM(i.seats),0) s
                               FROM scans sc JOIN invitations i ON i.id = sc.invitation_id
@@ -341,6 +419,9 @@ router.get('/scan/event/:event_id/list', requireAdminOrController, (req, res) =>
   const eventId = req.params.event_id;
   if (req.controller && !req.controllerEvents.includes(eventId)) {
     return res.status(403).json({ error: 'Cet événement ne vous est pas affecté' });
+  }
+  if (req.user && !canAccessEvent(req.user, eventId)) {
+    return res.status(403).json({ error: 'Accès refusé sur cet événement' });
   }
   const rows = db.prepare(`
     SELECT i.*, sc.scanned_at, sc.scanner_label
@@ -369,6 +450,7 @@ router.post('/invitations/bulk', requireAuth, uploadCsv.single('file'), async (r
     if (!req.file) return res.status(400).json({ error: 'Fichier CSV requis' });
     const ev = getEventById(event_id);
     if (!ev) return res.status(404).json({ error: 'Événement introuvable' });
+    if (!canAccessEvent(req.user, event_id)) return res.status(403).json({ error: 'Accès refusé sur cet événement' });
 
     // Lire CSV (auto-detect delimiter)
     const fs = await import('node:fs/promises');
@@ -487,6 +569,25 @@ router.get('/controller/me', requireController, (req, res) => {
   res.json({ controller: { id: u.sub, username: u.username, name: u.name }, events });
 });
 
+// /auth/mobile-me — endpoint unifié (admin / super_admin / controller)
+router.get('/auth/mobile-me', requireAdminOrController, (req, res) => {
+  if (req.user) {
+    const a = db.prepare('SELECT id, username, role FROM admins WHERE id = ?').get(req.user.sub);
+    if (!a) return res.status(404).json({ error: 'Compte introuvable' });
+    const events = (a.role === 'super_admin')
+      ? db.prepare('SELECT id, title, bride_name, groom_name FROM events ORDER BY created_at DESC').all()
+      : db.prepare('SELECT id, title, bride_name, groom_name FROM events WHERE created_by = ? ORDER BY created_at DESC').all(a.id);
+    return res.json({ controller: { id: a.id, username: a.username, name: a.username, role: a.role }, events });
+  }
+  // controller
+  const u = req.controller;
+  const events = db.prepare(`
+    SELECT e.id, e.title, e.bride_name, e.groom_name FROM controller_events ce
+    JOIN events e ON e.id = ce.event_id WHERE ce.controller_id = ?
+  `).all(u.sub);
+  res.json({ controller: { id: u.sub, username: u.username, name: u.name, role: 'controller' }, events });
+});
+
 const controllerSchema = z.object({
   username: z.string().min(3),
   password: z.string().min(4).optional(),
@@ -494,8 +595,11 @@ const controllerSchema = z.object({
   event_ids: z.array(z.string()).optional().default([]),
 });
 
-router.get('/controllers', requireAuth, (_req, res) => {
-  const list = db.prepare('SELECT id, username, name, created_at FROM controllers ORDER BY created_at DESC').all();
+router.get('/controllers', requireAuth, (req, res) => {
+  const isSuper = req.user.role === 'super_admin';
+  const list = isSuper
+    ? db.prepare('SELECT id, username, name, created_at, created_by FROM controllers ORDER BY created_at DESC').all()
+    : db.prepare('SELECT id, username, name, created_at, created_by FROM controllers WHERE created_by = ? ORDER BY created_at DESC').all(req.user.sub);
   for (const c of list) {
     c.events = db.prepare(`SELECT e.id, e.title, e.bride_name, e.groom_name
       FROM controller_events ce JOIN events e ON e.id = ce.event_id WHERE ce.controller_id = ?`).all(c.id);
@@ -510,25 +614,38 @@ router.post('/controllers', requireAuth, (req, res) => {
   if (!password) return res.status(400).json({ error: 'Mot de passe requis' });
   const exists = db.prepare('SELECT id FROM controllers WHERE username = ?').get(username);
   if (exists) return res.status(409).json({ error: 'Nom déjà utilisé' });
+  // Vérifier que l'admin possède bien tous les events demandés
+  for (const eid of event_ids) {
+    if (!canAccessEvent(req.user, eid)) return res.status(403).json({ error: `Accès refusé sur l'événement ${eid}` });
+  }
   const hash = bcrypt.hashSync(password, 10);
-  const r = db.prepare('INSERT INTO controllers (username, password_hash, name) VALUES (?,?,?)')
-    .run(username, hash, name);
+  const r = db.prepare('INSERT INTO controllers (username, password_hash, name, created_by) VALUES (?,?,?,?)')
+    .run(username, hash, name, req.user.sub);
   const id = r.lastInsertRowid;
   const ins = db.prepare('INSERT OR IGNORE INTO controller_events (controller_id, event_id) VALUES (?,?)');
   for (const eid of event_ids) ins.run(id, eid);
   res.status(201).json({ id, username, name });
 });
 
+function ensureControllerOwnership(req, c) {
+  if (req.user.role === 'super_admin') return true;
+  return c.created_by === req.user.sub;
+}
+
 router.patch('/controllers/:id', requireAuth, (req, res) => {
   const id = Number(req.params.id);
   const c = db.prepare('SELECT * FROM controllers WHERE id = ?').get(id);
   if (!c) return res.status(404).json({ error: 'Introuvable' });
+  if (!ensureControllerOwnership(req, c)) return res.status(403).json({ error: 'Accès refusé' });
   const parsed = controllerSchema.partial().safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: 'Validation échouée', details: parsed.error.flatten() });
   const { name, password, event_ids } = parsed.data;
   if (name !== undefined) db.prepare('UPDATE controllers SET name = ? WHERE id = ?').run(name, id);
   if (password) db.prepare('UPDATE controllers SET password_hash = ? WHERE id = ?').run(bcrypt.hashSync(password, 10), id);
   if (Array.isArray(event_ids)) {
+    for (const eid of event_ids) {
+      if (!canAccessEvent(req.user, eid)) return res.status(403).json({ error: `Accès refusé sur l'événement ${eid}` });
+    }
     db.prepare('DELETE FROM controller_events WHERE controller_id = ?').run(id);
     const ins = db.prepare('INSERT OR IGNORE INTO controller_events (controller_id, event_id) VALUES (?,?)');
     for (const eid of event_ids) ins.run(id, eid);
@@ -537,8 +654,66 @@ router.patch('/controllers/:id', requireAuth, (req, res) => {
 });
 
 router.delete('/controllers/:id', requireAuth, (req, res) => {
-  const r = db.prepare('DELETE FROM controllers WHERE id = ?').run(Number(req.params.id));
-  if (!r.changes) return res.status(404).json({ error: 'Introuvable' });
+  const c = db.prepare('SELECT * FROM controllers WHERE id = ?').get(Number(req.params.id));
+  if (!c) return res.status(404).json({ error: 'Introuvable' });
+  if (!ensureControllerOwnership(req, c)) return res.status(403).json({ error: 'Accès refusé' });
+  db.prepare('DELETE FROM controllers WHERE id = ?').run(Number(req.params.id));
+  res.status(204).end();
+});
+
+// ---------- ADMINS (super_admin uniquement) ----------
+const adminSchema = z.object({
+  username: z.string().min(3),
+  password: z.string().min(4).optional(),
+  role: z.enum(['admin', 'super_admin']).optional().default('admin'),
+});
+
+router.get('/admins', requireSuperAdmin, (_req, res) => {
+  const list = db.prepare('SELECT id, username, role, created_at FROM admins ORDER BY created_at DESC').all();
+  res.json(list);
+});
+
+router.post('/admins', requireSuperAdmin, (req, res) => {
+  const parsed = adminSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Validation échouée', details: parsed.error.flatten() });
+  const { username, password, role } = parsed.data;
+  if (!password) return res.status(400).json({ error: 'Mot de passe requis' });
+  const exists = db.prepare('SELECT id FROM admins WHERE username = ?').get(username);
+  if (exists) return res.status(409).json({ error: 'Nom déjà utilisé' });
+  const hash = bcrypt.hashSync(password, 10);
+  const r = db.prepare('INSERT INTO admins (username, password_hash, role) VALUES (?,?,?)').run(username, hash, role);
+  res.status(201).json({ id: r.lastInsertRowid, username, role });
+});
+
+router.patch('/admins/:id', requireSuperAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const a = db.prepare('SELECT * FROM admins WHERE id = ?').get(id);
+  if (!a) return res.status(404).json({ error: 'Introuvable' });
+  const parsed = adminSchema.partial().safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Validation échouée', details: parsed.error.flatten() });
+  const { password, role } = parsed.data;
+  if (password) db.prepare('UPDATE admins SET password_hash = ? WHERE id = ?').run(bcrypt.hashSync(password, 10), id);
+  if (role) {
+    // Empêcher de retirer le dernier super_admin
+    if (a.role === 'super_admin' && role !== 'super_admin') {
+      const supers = db.prepare("SELECT COUNT(*) c FROM admins WHERE role = 'super_admin'").get().c;
+      if (supers <= 1) return res.status(400).json({ error: 'Impossible de retirer le dernier super_admin' });
+    }
+    db.prepare('UPDATE admins SET role = ? WHERE id = ?').run(role, id);
+  }
+  res.json({ ok: true });
+});
+
+router.delete('/admins/:id', requireSuperAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  if (id === req.user.sub) return res.status(400).json({ error: 'Impossible de supprimer son propre compte' });
+  const a = db.prepare('SELECT * FROM admins WHERE id = ?').get(id);
+  if (!a) return res.status(404).json({ error: 'Introuvable' });
+  if (a.role === 'super_admin') {
+    const supers = db.prepare("SELECT COUNT(*) c FROM admins WHERE role = 'super_admin'").get().c;
+    if (supers <= 1) return res.status(400).json({ error: 'Impossible de supprimer le dernier super_admin' });
+  }
+  db.prepare('DELETE FROM admins WHERE id = ?').run(id);
   res.status(204).end();
 });
 
