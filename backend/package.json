@@ -1,0 +1,26 @@
+{
+  "name": "biso-invit-backend",
+  "version": "1.0.0",
+  "description": "Backend API pour BisoInvit - gestion d'invitations électroniques",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed.js"
+  },
+  "dependencies": {
+    "archiver": "^8.0.0",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.0.0",
+    "cors": "^2.8.5",
+    "csv-parse": "^6.2.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.1.1",
+    "nanoid": "^5.0.7",
+    "puppeteer-core": "^24.43.0",
+    "zod": "^3.23.8"
+  }
+}

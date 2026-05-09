@@ -1,0 +1,858 @@
+/* =========================================================
+   Invitation card — designs réels d'invitations de mariage
+   6 thèmes : Heart Gold · Damask · Silver · Royal · Floral · Modern
+   ========================================================= */
+
+/* ---------- Wrapper extérieur ---------- */
+.invitation-card {
+  --card-w: 440px;
+  --card-radius: 6px;
+  width: 100%;
+  max-width: var(--card-w);
+  margin: 0 auto;
+  padding: 28px 24px;
+  border-radius: 14px;
+  position: relative;
+  background: var(--card-outer-bg, #fde9df);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.25);
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  color: #1a1a1a;
+}
+
+/* ---------- Carte papier intérieure ---------- */
+.ic-paper {
+  position: relative;
+  background: var(--card-paper-bg, #ffffff);
+  border-radius: var(--card-radius);
+  padding-bottom: 28px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* ---------- Zone photo ---------- */
+.ic-photo-zone {
+  position: relative;
+  margin: var(--photo-margin, 18px 18px 0);
+  height: var(--photo-height, 320px);
+}
+.ic-photo-frame {
+  position: absolute; inset: 0;
+  border-radius: var(--photo-radius, 4px);
+  overflow: hidden;
+  background: #f0e6dc;
+}
+.ic-photo-frame img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ic-photo-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #e9dccd, #d8c5af);
+  color: #8a7559; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem; letter-spacing: 0.05em;
+}
+.ic-ornament {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.ic-ornament svg.ornament {
+  width: 100%; height: 100%;
+}
+
+/* ---------- BODY ---------- */
+.ic-body {
+  text-align: center;
+  padding: 22px 32px 8px;
+  color: var(--body-color, #1a1a1a);
+}
+.ic-overline {
+  display: flex; flex-direction: column; gap: 2px;
+  font-family: 'Playfair Display', serif;
+  font-size: 0.78rem; letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--overline-color, #5a5a5a);
+  margin-bottom: 14px;
+}
+.ic-couple {
+  font-family: var(--couple-font, 'Great Vibes'), cursive;
+  font-size: var(--couple-size, 3.4rem);
+  font-weight: 400;
+  line-height: 1.05;
+  margin: 0 0 8px;
+  color: var(--couple-color, #1a1a1a);
+}
+.ic-couple .ic-amp {
+  font-family: var(--couple-font, 'Great Vibes'), cursive;
+  font-size: 0.8em;
+  color: var(--accent-color, #b88a3a);
+  font-style: italic;
+}
+.ic-divider {
+  display: flex; align-items: center; justify-content: center;
+  margin: 14px auto;
+  width: 70%;
+}
+.ic-divider::before, .ic-divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: var(--divider-color, rgba(0,0,0,0.4));
+}
+.ic-divider span {
+  width: 6px; height: 6px;
+  margin: 0 10px;
+  background: var(--accent-color, #b88a3a);
+  transform: rotate(45deg);
+}
+.ic-date-strip {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  letter-spacing: 0.28em;
+  font-weight: 500;
+  color: var(--date-color, #1a1a1a);
+  margin: 6px 0 4px;
+}
+.ic-multi-dates {
+  margin-top: 6px;
+  font-size: 0.95rem;
+  color: var(--body-color, #2a2a2a);
+}
+.ic-multi-dates .ic-date-row {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 4px 0;
+}
+.ic-multi-dates .ic-date-row span { font-weight: 600; }
+.ic-multi-dates .ic-date-row em { font-style: italic; opacity: 0.85; font-size: 0.9em; }
+.ic-multi-dates .ic-date-row small { opacity: 0.7; font-size: 0.85em; letter-spacing: 0.05em; text-transform: uppercase; }
+
+.ic-venue {
+  margin-top: 14px;
+  font-family: 'Playfair Display', serif;
+  color: var(--body-color, #2a2a2a);
+}
+.ic-venue-label {
+  font-size: 0.7rem; letter-spacing: 0.32em; text-transform: uppercase;
+  color: var(--overline-color, #6a6a6a);
+  margin-bottom: 4px;
+}
+.ic-venue-name { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.04em; }
+.ic-venue-ref { font-size: 0.85rem; opacity: 0.78; margin-top: 2px; font-style: italic; }
+.ic-venue-addr { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
+
+.ic-meta-line {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  font-family: 'Playfair Display', serif;
+  color: var(--body-color, #2a2a2a);
+  letter-spacing: 0.04em;
+}
+
+.ic-guest {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--guest-border, rgba(0,0,0,0.12));
+  border-radius: 4px;
+  background: var(--guest-bg, rgba(0,0,0,0.02));
+}
+.ic-guest-label {
+  font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--overline-color, #6a6a6a);
+}
+.ic-guest-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+.ic-guest-line { font-size: 0.85rem; margin-top: 4px; opacity: 0.8; font-style: italic; }
+
+/* ---------- QR ---------- */
+.ic-qr {
+  display: flex; align-items: center; gap: 14px;
+  margin: 22px 32px 0;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid var(--qr-border, rgba(0,0,0,0.08));
+  border-radius: 4px;
+}
+.ic-qr canvas, .ic-qr svg { display: block; }
+.ic-qr-label {
+  flex: 1;
+  display: flex; flex-direction: column; gap: 4px;
+  font-family: 'Playfair Display', serif;
+  text-align: left;
+}
+.ic-qr-label span {
+  font-size: 0.78rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--overline-color, #555);
+}
+.ic-qr-label small {
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  color: var(--accent-color, #b88a3a);
+  letter-spacing: 0.18em;
+}
+
+/* =========================================================
+   THÈME 1 — SILVER LACE  (peachy background, scrollwork)
+   ========================================================= */
+.tpl-silver {
+  --card-outer-bg: #fde9df;
+  --card-paper-bg: #ffffff;
+  --photo-height: 320px;
+  --photo-radius: 4px;
+  --couple-font: 'Great Vibes';
+  --couple-size: 3.4rem;
+  --couple-color: #1a1a1a;
+  --accent-color: #9a9a9a;
+  --divider-color: rgba(60,60,60,0.5);
+  --overline-color: #555;
+  --body-color: #1a1a1a;
+}
+.tpl-silver .ic-photo-frame { border-radius: 4px 4px 50% 50% / 4px 4px 18% 18%; }
+.tpl-silver .ic-ornament {
+  top: auto; bottom: -10px; height: 55%;
+}
+.tpl-silver .ic-ornament svg { filter: drop-shadow(0 2px 4px rgba(255,255,255,0.6)); }
+
+/* =========================================================
+   THÈME 2 — ROYAL  (black & gold florals, circular photo)
+   ========================================================= */
+.tpl-royal {
+  --card-outer-bg: #f1f1f1;
+  --card-paper-bg: #fffdf7;
+  --photo-margin: 30px 30px 0;
+  --photo-height: 320px;
+  --photo-radius: 50%;
+  --couple-font: 'Great Vibes';
+  --couple-size: 3.6rem;
+  --couple-color: #c9a14a;
+  --accent-color: #c9a14a;
+  --divider-color: #c9a14a;
+  --overline-color: #2a2a2a;
+  --body-color: #1a1a1a;
+  --guest-border: rgba(201,161,74,0.4);
+  --guest-bg: rgba(201,161,74,0.05);
+  --qr-border: rgba(201,161,74,0.3);
+}
+.tpl-royal .ic-paper {
+  background:
+    radial-gradient(ellipse at top right, rgba(201,161,74,0.1), transparent 50%),
+    radial-gradient(ellipse at bottom left, rgba(13,13,13,0.04), transparent 50%),
+    #fffdf7;
+}
+.tpl-royal .ic-photo-zone { aspect-ratio: 1; height: auto; }
+.tpl-royal .ic-photo-frame {
+  border-radius: 50%;
+  border: 3px solid #c9a14a;
+  box-shadow: 0 0 0 1px rgba(201,161,74,0.4) inset, 0 8px 16px rgba(0,0,0,0.12);
+}
+.tpl-royal .ic-ornament {
+  inset: -20px -20px -20px -20px;
+}
+.tpl-royal .ic-couple {
+  background: linear-gradient(135deg, #c9a14a 0%, #e6c97a 50%, #c9a14a 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.tpl-royal .ic-divider span { background: #c9a14a; }
+
+/* =========================================================
+   THÈME 3 — FLORAL  (blush pink + watercolor roses)
+   ========================================================= */
+.tpl-floral {
+  --card-outer-bg: #fef0f4;
+  --card-paper-bg: #fffafb;
+  --photo-height: 300px;
+  --photo-radius: 6px;
+  --couple-font: 'Great Vibes';
+  --couple-size: 3.5rem;
+  --couple-color: #b94668;
+  --accent-color: #d4748b;
+  --divider-color: rgba(180, 80, 110, 0.45);
+  --overline-color: #8a4a5a;
+  --body-color: #4a2530;
+  --guest-border: rgba(180, 80, 110, 0.25);
+  --guest-bg: rgba(255, 240, 244, 0.6);
+}
+.tpl-floral .ic-paper {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(212,116,139,0.12), transparent 35%),
+    radial-gradient(ellipse at 100% 100%, rgba(124,154,110,0.08), transparent 35%),
+    #fffafb;
+}
+.tpl-floral .ic-photo-frame {
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+}
+.tpl-floral .ic-photo-frame img {
+  border-radius: 0;
+  box-shadow: none;
+}
+.tpl-floral .ic-ornament { inset: -10px -10px -10px -10px; }
+
+/* =========================================================
+   THÈME 4 — MODERN  (ivory + thin gold line)
+   ========================================================= */
+.tpl-modern {
+  --card-outer-bg: #f3efe7;
+  --card-paper-bg: #fbf8f1;
+  --photo-margin: 38px 38px 0;
+  --photo-height: 290px;
+  --photo-radius: 0;
+  --couple-font: 'Playfair Display';
+  --couple-size: 2.4rem;
+  --couple-color: #1a1a1a;
+  --accent-color: #c9a14a;
+  --divider-color: #c9a14a;
+  --overline-color: #555;
+  --body-color: #1a1a1a;
+  --guest-border: rgba(0,0,0,0.12);
+  font-family: 'Inter', 'Playfair Display', serif;
+}
+.tpl-modern .ic-paper {
+  background: #fbf8f1;
+}
+.tpl-modern .ic-photo-frame {
+  border-radius: 0;
+  border: 1px solid rgba(201, 161, 74, 0.4);
+}
+.tpl-modern .ic-photo-zone::before {
+  content: ''; position: absolute;
+  inset: -10px; border: 1px solid rgba(201,161,74,0.4);
+  pointer-events: none; z-index: 1;
+}
+.tpl-modern .ic-ornament { inset: -38px -38px 0 -38px; }
+.tpl-modern .ic-couple {
+  font-style: italic;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+.tpl-modern .ic-couple .ic-amp { font-family: 'Great Vibes', cursive; font-style: normal; font-size: 1.6em; vertical-align: -0.1em; }
+
+/* =========================================================
+   THÈME 5 — HEART GOLD  (cœur photo + fond marine)
+   Layout : "side" (texte gauche, cœur droite)
+   ========================================================= */
+.tpl-heart {
+  --card-outer-bg: var(--accent-override, #d4af37);
+  --card-paper-bg: #0e1535;
+  --accent-color: var(--accent-override, #d4af37);
+  color: #f4e7c2;
+  font-family: 'Cormorant Garamond', serif;
+  padding: 16px;
+}
+.tpl-heart .ic-paper {
+  background: linear-gradient(135deg, #0e1535 0%, #161e44 100%);
+  padding: 38px 32px 30px;
+  position: relative;
+  border-radius: 6px;
+}
+.tpl-heart .ic-side {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 24px;
+  align-items: center;
+}
+.tpl-heart .ic-side-text { text-align: left; }
+.tpl-heart .ic-overline-single {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  color: var(--accent-color);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.tpl-heart .ic-couple-script {
+  font-family: 'Great Vibes', cursive;
+  font-size: 3rem;
+  line-height: 1.05;
+  color: var(--accent-color);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-weight: 400;
+}
+.tpl-heart .ic-couple-script .ic-amp-heart {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin: -2px 0;
+}
+.tpl-heart .ic-couple-script .ic-amp-heart svg { color: var(--accent-color); }
+.tpl-heart .ic-couple-script .ic-amp-heart em {
+  font-family: 'Great Vibes', cursive;
+  font-style: normal;
+  font-size: 1.6rem;
+  color: #0e1535;
+  margin-left: -22px;
+  margin-bottom: 4px;
+  z-index: 2;
+  position: relative;
+}
+.tpl-heart .ic-side-subtitle {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.42em;
+  font-size: 0.85rem;
+  color: var(--accent-color);
+  margin-top: 10px;
+}
+.tpl-heart .ic-side-date {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  margin-top: 10px;
+  color: #f4e7c2;
+}
+.tpl-heart .ic-side-time {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.4rem;
+  color: var(--accent-color);
+  margin-top: 4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.tpl-heart .ic-side-time .hh { color: var(--accent-color); font-size: 0.9em; }
+.tpl-heart .ic-greeting {
+  margin-top: 18px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(244, 231, 194, 0.85);
+}
+.tpl-heart .ic-greeting strong { color: var(--accent-color); font-weight: 600; }
+.tpl-heart .ic-greeting .ic-greet-name {
+  font-family: 'Great Vibes', cursive;
+  font-size: 1.5rem;
+  color: var(--accent-color);
+}
+.tpl-heart .ic-greeting em { font-style: italic; color: #fff; }
+
+.tpl-heart .ic-heart-zone {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+}
+.tpl-heart .ic-heart-zone .ornament { position: absolute; inset: 0; z-index: 2; }
+.tpl-heart .ic-heart-clip {
+  position: absolute;
+  inset: 12%;
+  -webkit-clip-path: path('M170 290 C 100 250, 25 195, 22 130 C 20 70, 65 35, 110 50 C 138 60, 158 85, 170 110 C 182 85, 202 60, 230 50 C 275 35, 320 70, 318 130 C 315 195, 240 250, 170 290 Z');
+  clip-path: path('M170 290 C 100 250, 25 195, 22 130 C 20 70, 65 35, 110 50 C 138 60, 158 85, 170 110 C 182 85, 202 60, 230 50 C 275 35, 320 70, 318 130 C 315 195, 240 250, 170 290 Z');
+  background: #1a1a3a;
+  overflow: hidden;
+}
+.tpl-heart .ic-heart-clip img { width: 100%; height: 100%; object-fit: cover; }
+.tpl-heart .ic-photo-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #1a1a3a, #2a2a55);
+  color: rgba(212, 175, 55, 0.7);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+.tpl-heart .ic-qr-floating {
+  position: absolute;
+  right: 26px; bottom: 20px;
+  margin: 0; padding: 8px;
+  background: #fff; border: 1px solid var(--accent-color);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.tpl-heart .ic-side-meta {
+  position: absolute;
+  left: 32px; bottom: 22px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.82rem;
+  color: rgba(244, 231, 194, 0.7);
+  letter-spacing: 0.05em;
+  display: flex; gap: 8px; align-items: baseline;
+}
+.tpl-heart .ic-side-meta .code {
+  font-family: 'Courier New', monospace;
+  color: var(--accent-color);
+  letter-spacing: 0.18em;
+  font-size: 0.7rem;
+  margin-left: 8px;
+}
+
+/* =========================================================
+   THÈME 6 — DAMASK VINTAGE  (photo plein cadre + ornement blanc)
+   ========================================================= */
+.tpl-damask {
+  --card-outer-bg: #d8d4cc;
+  --card-paper-bg: #ffffff;
+  --accent-color: var(--accent-override, #c9a14a);
+  color: #1a1a1a;
+  font-family: 'Cormorant Garamond', serif;
+}
+.tpl-damask .ic-paper {
+  background: #ffffff;
+  border-radius: 0;
+  padding-bottom: 28px;
+  position: relative;
+}
+.tpl-damask .ic-damask-photo {
+  position: relative;
+  height: 360px;
+  overflow: hidden;
+  margin: 14px 14px 0;
+}
+.tpl-damask .ic-damask-photo img { width: 100%; height: 100%; object-fit: cover; }
+.tpl-damask .ic-damask-photo .ic-photo-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #2a2a2a, #4a4a4a);
+  color: #d4af37; font-style: italic;
+}
+.tpl-damask .ic-damask-frame {
+  position: absolute; inset: 16px;
+  border: 1px solid var(--accent-color);
+  pointer-events: none;
+  z-index: 2;
+}
+.tpl-damask .ic-damask-band {
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 110px;
+  pointer-events: none;
+  z-index: 3;
+  filter: drop-shadow(0 -8px 12px rgba(0,0,0,0.18));
+}
+.tpl-damask .ic-damask-band svg { width: 100%; height: 100%; }
+.tpl-damask .ic-damask-body {
+  text-align: center;
+  padding: 30px 38px 0;
+  position: relative;
+}
+.tpl-damask .ic-damask-body::before,
+.tpl-damask .ic-damask-body::after {
+  content: ''; position: absolute;
+  left: 26px; right: 26px; height: 1px;
+  background: var(--accent-color); opacity: 0.5;
+}
+.tpl-damask .ic-damask-body::before { top: 4px; }
+.tpl-damask .ic-damask-body::after { bottom: 12px; }
+.tpl-damask .ic-overline-single {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.3em;
+  font-size: 0.78rem;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.tpl-damask .ic-mt-sm { margin-top: 12px; font-size: 0.72rem; }
+.tpl-damask .ic-couple-script {
+  font-family: 'Great Vibes', cursive;
+  font-size: 3.6rem;
+  line-height: 1;
+  color: var(--accent-color);
+  margin: 12px 0 16px;
+  font-weight: 400;
+  display: block;
+}
+.tpl-damask .ic-couple-script .ic-amp-script {
+  font-family: 'Great Vibes', cursive;
+  color: #d8c694;
+  font-size: 1.1em;
+  margin: 0 -4px;
+  font-weight: 400;
+}
+.tpl-damask .ic-damask-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: var(--accent-color);
+  letter-spacing: 0.12em;
+}
+.tpl-damask .ic-damask-date i { font-style: normal; opacity: 0.5; font-weight: 300; }
+.tpl-damask .ic-damask-detail {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-color);
+  margin-top: 8px;
+}
+.tpl-damask .ic-damask-foot {
+  font-family: 'Great Vibes', cursive;
+  font-size: 1.1rem;
+  color: var(--accent-color);
+  margin-top: 20px;
+  opacity: 0.85;
+}
+.tpl-damask .ic-greeting {
+  margin-top: 22px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #2a2a2a;
+  text-align: center;
+}
+.tpl-damask .ic-greeting strong { color: var(--accent-color); }
+.tpl-damask .ic-greeting .ic-greet-name {
+  font-family: 'Great Vibes', cursive;
+  font-size: 1.4rem;
+  color: var(--accent-color);
+}
+.tpl-damask .ic-greeting em { font-style: italic; color: var(--accent-color); }
+
+.tpl-damask .ic-qr {
+  margin: 22px 38px 0;
+}
+
+/* ========== Greeting block (classic templates) ========== */
+.ic-guest .ic-greeting {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--body-color, #1a1a1a);
+  text-align: left;
+}
+.ic-guest .ic-greeting strong { color: var(--accent-color, #b88a3a); font-weight: 600; }
+.ic-guest .ic-greeting .ic-greet-name {
+  font-family: 'Great Vibes', cursive;
+  font-size: 1.5rem;
+  color: var(--accent-color, #b88a3a);
+}
+.ic-guest .ic-greeting em { font-style: italic; color: var(--accent-color, #b88a3a); }
+
+/* Accent override : applied to base templates when user picks custom color */
+.invitation-card[style*="--accent-override"] {
+  --accent-color: var(--accent-override) !important;
+  --divider-color: var(--accent-override) !important;
+}
+
+/* =========================================================
+   PREVIEW MODE (Home / Gallery thumbnails)
+   ========================================================= */
+.invitation-card.is-preview {
+  --card-w: 100%;
+  padding: 12px 10px;
+  pointer-events: none;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+.invitation-card.is-preview .ic-paper { padding-bottom: 14px; }
+.invitation-card.is-preview .ic-photo-zone { --photo-height: 130px; --photo-margin: 12px 12px 0; }
+.invitation-card.is-preview .ic-body { padding: 10px 14px 4px; }
+.invitation-card.is-preview .ic-couple { font-size: 1.7rem !important; margin-bottom: 4px; }
+.invitation-card.is-preview .ic-overline { font-size: 0.46rem; margin-bottom: 6px; letter-spacing: 0.22em; gap: 0; }
+.invitation-card.is-preview .ic-divider { margin: 6px auto; }
+.invitation-card.is-preview .ic-divider span { width: 4px; height: 4px; margin: 0 6px; }
+.invitation-card.is-preview .ic-date-strip { font-size: 0.6rem; letter-spacing: 0.18em; }
+.invitation-card.is-preview .ic-venue,
+.invitation-card.is-preview .ic-multi-dates,
+.invitation-card.is-preview .ic-meta-line { display: none; }
+.invitation-card.is-preview.tpl-modern .ic-photo-zone::before { inset: -6px; }
+.invitation-card.is-preview.tpl-royal { --photo-margin: 16px 16px 0; }
+
+/* Heart preview */
+.invitation-card.is-preview.tpl-heart { padding: 8px; }
+.invitation-card.is-preview.tpl-heart .ic-paper { padding: 14px 12px; }
+.invitation-card.is-preview.tpl-heart .ic-side { gap: 10px; }
+.invitation-card.is-preview.tpl-heart .ic-couple-script { font-size: 1.4rem; }
+.invitation-card.is-preview.tpl-heart .ic-couple-script .ic-amp-heart svg { width: 16px; height: 16px; }
+.invitation-card.is-preview.tpl-heart .ic-couple-script .ic-amp-heart em { font-size: 0.8rem; margin-left: -10px; }
+.invitation-card.is-preview.tpl-heart .ic-overline-single { font-size: 0.45rem; margin-bottom: 6px; }
+.invitation-card.is-preview.tpl-heart .ic-side-subtitle { font-size: 0.4rem; letter-spacing: 0.3em; }
+.invitation-card.is-preview.tpl-heart .ic-side-date { font-size: 0.55rem; margin-top: 4px; }
+.invitation-card.is-preview.tpl-heart .ic-side-time { font-size: 0.65rem; margin-top: 2px; gap: 4px; }
+.invitation-card.is-preview.tpl-heart .ic-greeting,
+.invitation-card.is-preview.tpl-heart .ic-side-meta,
+.invitation-card.is-preview.tpl-heart .ic-qr-floating { display: none; }
+
+/* Damask preview */
+.invitation-card.is-preview.tpl-damask .ic-damask-photo { height: 130px; margin: 8px 8px 0; }
+.invitation-card.is-preview.tpl-damask .ic-damask-frame { inset: 10px; }
+.invitation-card.is-preview.tpl-damask .ic-damask-band { height: 50px; }
+.invitation-card.is-preview.tpl-damask .ic-damask-body { padding: 16px 18px 0; }
+.invitation-card.is-preview.tpl-damask .ic-couple-script { font-size: 1.6rem; margin: 6px 0 8px; }
+.invitation-card.is-preview.tpl-damask .ic-overline-single { font-size: 0.46rem; }
+.invitation-card.is-preview.tpl-damask .ic-mt-sm { font-size: 0.4rem; margin-top: 6px; }
+.invitation-card.is-preview.tpl-damask .ic-damask-date { font-size: 0.7rem; gap: 6px; margin-top: 6px; }
+.invitation-card.is-preview.tpl-damask .ic-damask-detail { font-size: 0.5rem; }
+.invitation-card.is-preview.tpl-damask .ic-damask-foot { font-size: 0.7rem; margin-top: 8px; }
+.invitation-card.is-preview.tpl-damask .ic-greeting,
+.invitation-card.is-preview.tpl-damask .ic-qr { display: none; }
+
+/* =========================================================
+   GREETING TOP (remplace l'overline) + QR centré
+   ========================================================= */
+.ic-greeting-top {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 auto 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--body-color, #2a2a2a);
+}
+.ic-greeting-top strong {
+  color: var(--accent-color, #b88a3a);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.ic-greeting-top .ic-greet-name {
+  font-family: 'Great Vibes', cursive;
+  font-size: 1.6rem;
+  color: var(--accent-color, #b88a3a);
+  font-weight: 400;
+}
+
+/* QR centré horizontalement (sans bordure ni label) */
+.ic-qr.ic-qr-centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 18px auto 4px;
+  padding: 8px;
+  width: fit-content;
+  background: #ffffff;
+  border: 1px solid var(--qr-border, rgba(0,0,0,0.08));
+  border-radius: 4px;
+  gap: 0;
+}
+
+/* Heart : greeting au-dessus du couple, plus compact */
+.tpl-heart .ic-greeting-top {
+  text-align: left;
+  color: rgba(244, 231, 194, 0.9);
+  margin-bottom: 12px;
+  padding: 0;
+}
+.tpl-heart .ic-greeting-top strong { color: var(--accent-color); }
+.tpl-heart .ic-greeting-top .ic-greet-name { color: var(--accent-color); }
+.tpl-heart .ic-qr.ic-qr-centered {
+  position: static;
+  margin: 18px auto 0;
+  background: #fff;
+  border: 1px solid var(--accent-color);
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+/* on déplace le QR centré hors de la grille side */
+.tpl-heart .ic-paper.ic-side {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  grid-template-rows: auto auto;
+  gap: 14px 24px;
+  align-items: center;
+}
+
+/* Damask : greeting en haut ; QR centré */
+.tpl-damask .ic-greeting-top {
+  margin-bottom: 10px;
+}
+.tpl-damask .ic-qr.ic-qr-centered {
+  margin: 18px auto 0;
+}
+
+/* =========================================================
+   PORTRAIT / LANDSCAPE — contraintes de taille
+   ========================================================= */
+.invitation-card {
+  /* portrait par défaut : ratio ~ 5/7 (carte d'invitation classique) */
+  --card-w: 440px;
+}
+.invitation-card .ic-paper {
+  /* on évite les hauteurs déraisonnables : la carte reste dans un format portrait */
+  max-width: 100%;
+}
+
+/* Compactage du layout classique pour rester en portrait */
+.tpl-silver .ic-photo-zone,
+.tpl-floral .ic-photo-zone,
+.tpl-modern .ic-photo-zone { --photo-height: 260px; }
+.tpl-royal .ic-photo-zone { --photo-height: auto; }
+
+.ic-body { padding: 18px 32px 8px; }
+.ic-couple { font-size: 2.9rem; }
+.ic-divider { margin: 10px auto; }
+.ic-venue { margin-top: 10px; }
+
+/* Heart : ajuste pour rester compact */
+.tpl-heart .ic-paper { padding: 26px 24px 22px; }
+.tpl-heart .ic-couple-script { font-size: 2.6rem; }
+.tpl-heart .ic-side-date { font-size: 1rem; margin-top: 8px; }
+.tpl-heart .ic-side-time { font-size: 1.2rem; }
+
+/* Damask : photo un peu plus courte */
+.tpl-damask .ic-damask-photo { height: 300px; }
+.tpl-damask .ic-couple-script { font-size: 3rem; margin: 10px 0 12px; }
+.tpl-damask .ic-damask-body { padding: 24px 32px 0; }
+
+/* Landscape : si le wrapper a la classe .is-landscape, on bascule en 16/10 */
+.invitation-card.is-landscape { --card-w: 640px; }
+.invitation-card.is-landscape .ic-paper { padding: 20px; }
+
+/* Mobile : on respecte la portrait orientation sans débordement */
+@media (max-width: 520px) {
+  .invitation-card { --card-w: 100%; padding: 14px 10px; }
+  .tpl-heart .ic-paper.ic-side {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  .tpl-heart .ic-heart-zone { max-width: 280px; margin: 0 auto; }
+  .tpl-damask .ic-damask-photo { height: 240px; }
+}
+
+/* =========================================================
+   PRINT MODE — utilisé par le backend (Puppeteer) pour exporter
+   ========================================================= */
+html.print-mode, body.print-mode {
+  margin: 0; padding: 0;
+  background: #ffffff !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.public-invitation.is-print {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #ffffff;
+}
+.public-invitation.is-print .public-actions { display: none !important; }
+/* Carte verrouillée à la taille imprimable (5x7 inch ≈ 480x672 CSS px) */
+.public-invitation.is-print .invitation-card {
+  --card-w: 480px;
+  width: 480px;
+  max-width: 480px;
+  margin: 0 !important;
+  border-radius: 0;
+  box-shadow: none;
+}
+.public-invitation.is-print[data-format="landscape"] .invitation-card {
+  --card-w: 672px;
+  width: 672px;
+  max-width: 672px;
+}
+/* on masque tout le shell de l'app (header / nav éventuels) */
+.print-mode .app-header,
+.print-mode .app-nav,
+.print-mode .app-footer,
+.print-mode .navbar,
+.print-mode .nav-links,
+.print-mode footer { display: none !important; }
+@page { margin: 0; }
+
+
+/* Mobile */
+@media (max-width: 480px) {
+  .invitation-card { padding: 18px 14px; }
+  .ic-body { padding: 18px 18px 4px; }
+  .ic-couple { font-size: 2.6rem !important; }
+  .ic-photo-zone { --photo-height: 260px; }
+  .ic-qr { margin: 18px 18px 0; }
+}

@@ -1,0 +1,78 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .containerInvi {
+      background-image: url('../src/assets/IMG-20240530-WA0021.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* min-height: 100vh;! */
+    width: 854PX;
+    height: 1280PX;
+}
+  .containerTout {
+      display: flex;
+      flex-direction: column;
+    justify-content: center;
+    /* align-items: center; */
+    width: 50%;
+    height: 1380PX;
+    padding: 10px;
+}
+  
+.cardInvit {
+      width: 95%;
+      height: 95%;
+      background-color: rgb(18,21,19);
+      display: flex;
+      flex-direction: column;
+      border-radius: 30px;
+      background-image: url('../src/assets/wepik-ornamental-hand-drawn-maria-and-andrew-wedding-invitation-20240601161356slsC.png');
+      background-repeat: no-repeat;
+      background-size: contain;
+      /* justify-content:center; */
+      align-items: center;
+      position: relative;
+    }
+    .content{
+       position: absolute;
+       bottom: 5px;
+       display: flex;
+       flex-direction: column;
+       text-align: center;
+       align-items: center;
+       /* background: #000; */
+  }
+  .contenaireQr{
+    padding: 40px;
+    background-color: #f0629138;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+    /* width: 50%; */
+  }
+  .salutation{
+    font-family: 'Comfortaa-Regular';
+  }
+  .invi{
+    font-family: 'Comfortaa-Medium';
+  }
+  .inviNous{
+    font-family: 'Comfortaa-Medium';
+    font-size: 0.8em;
+  }
+  .marié{
+    font-family: 'GreatVibes';
+    font-size: 3.5em;
+    font-weight: bold;
+  }
+
+ 
+  

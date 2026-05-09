@@ -1,0 +1,46 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  /* background-color: #242424; */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+
+}
+@font-face {
+  font-family: 'GreatVibes';
+  src: url('./assets/GreatVibes-Regular.ttf') format('truetype');
+  /* font-weight: normal;
+  font-style: normal; */
+}
+@font-face {
+  font-family: 'Comfortaa-Bold';
+  src: url('./assets/Comfortaa/static/Comfortaa-Bold.ttf') format('truetype');
+  /* font-weight: normal;
+  font-style: normal; */
+}
+@font-face {
+  font-family: 'Comfortaa-Lignt';
+  src: url('./assets/Comfortaa/static/Comfortaa-Light.ttf') format('truetype');
+  /* font-weight: normal;
+  font-style: normal; */
+}
+@font-face {
+  font-family: 'Comfortaa-Regular';
+  src: url('./assets/Comfortaa/static/Comfortaa-Regular.ttf') format('truetype');
+  /* font-weight: normal;
+  font-style: normal; */
+}
+@font-face {
+  font-family: 'Comfortaa-Medium';
+  src: url('./assets/Comfortaa/static/Comfortaa-Medium.ttf') format('truetype');
+  /* font-weight: normal;
+  font-style: normal; */
+}
