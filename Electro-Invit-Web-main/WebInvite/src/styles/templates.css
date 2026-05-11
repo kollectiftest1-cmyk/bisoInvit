@@ -229,7 +229,7 @@
   --photo-margin: 30px 30px 0;
   --photo-height: 320px;
   --photo-radius: 50%;
-  --couple-font: 'Playfair Display';
+  --couple-font: 'Great Vibes';
   --couple-size: 4rem;
   --couple-color: #c9a14a;
   --accent-color: #c9a14a;
@@ -259,17 +259,6 @@
   background: linear-gradient(135deg, #c9a14a 0%, #e6c97a 50%, #c9a14a 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-family: 'Playfair Display', 'Cormorant Garamond', serif;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.tpl-royal .ic-couple .ic-amp {
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  font-weight: 600;
-  font-size: 0.7em;
-  text-transform: none;
 }
 .tpl-royal .ic-divider span { background: #c9a14a; }
 
