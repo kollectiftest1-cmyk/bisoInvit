@@ -213,9 +213,19 @@ export default function TemplateRenderer({
           )}
 
           <h1 className="ic-couple">
-            {event?.bride_name || 'Bride'}
-            <span className="ic-amp"> &amp; </span>
-            {event?.groom_name || 'Groom'}
+            {template === 'royal' ? (
+              <>
+                {event?.groom_name || 'Marié'}
+                <span className="ic-amp"> &amp; </span>
+                {event?.bride_name || 'Mariée'}
+              </>
+            ) : (
+              <>
+                {event?.bride_name || 'Bride'}
+                <span className="ic-amp"> &amp; </span>
+                {event?.groom_name || 'Groom'}
+              </>
+            )}
           </h1>
 
           <div className="ic-divider"><span /></div>

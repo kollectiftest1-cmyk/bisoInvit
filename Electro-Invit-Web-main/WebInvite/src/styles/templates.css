@@ -229,8 +229,8 @@
   --photo-margin: 30px 30px 0;
   --photo-height: 320px;
   --photo-radius: 50%;
-  --couple-font: 'Great Vibes';
-  --couple-size: 3.6rem;
+  --couple-font: 'Playfair Display';
+  --couple-size: 4rem;
   --couple-color: #c9a14a;
   --accent-color: #c9a14a;
   --divider-color: #c9a14a;
@@ -259,8 +259,42 @@
   background: linear-gradient(135deg, #c9a14a 0%, #e6c97a 50%, #c9a14a 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
+  font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.tpl-royal .ic-couple .ic-amp {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 0.7em;
+  text-transform: none;
 }
 .tpl-royal .ic-divider span { background: #c9a14a; }
+
+/* Invitee name : simple bold (no script), legèrement plus grand */
+.tpl-royal .ic-greeting-top {
+  font-size: 1.1rem;
+  line-height: 1.55;
+}
+.tpl-royal .ic-greeting-top .ic-greet-name {
+  font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+  color: var(--accent-color, #c9a14a);
+}
+
+/* Légère augmentation des tailles de texte */
+.tpl-royal .ic-date-strip { font-size: 1.15rem; letter-spacing: 0.3em; }
+.tpl-royal .ic-venue-label { font-size: 0.78rem; }
+.tpl-royal .ic-venue-name { font-size: 1.25rem; }
+.tpl-royal .ic-venue-ref { font-size: 0.95rem; }
+.tpl-royal .ic-venue-addr { font-size: 0.9rem; }
+.tpl-royal .ic-meta-line { font-size: 0.95rem; }
+.tpl-royal .ic-multi-dates { font-size: 1.05rem; }
 
 /* =========================================================
    THÈME 3 — FLORAL  (blush pink + watercolor roses)
