@@ -357,6 +357,97 @@ router.delete('/invitations/:id', requireAuth, (req, res) => {
   res.status(204).end();
 });
 
+// ---------- BULK DELETE ----------
+router.post('/invitations/bulk-delete', requireAuth, (req, res) => {
+  const ids = Array.isArray(req.body?.ids) ? req.body.ids.filter((s) => typeof s === 'string') : [];
+  if (!ids.length) return res.status(400).json({ error: 'ids requis' });
+  const stmtGet = db.prepare('SELECT id, event_id FROM invitations WHERE id = ?');
+  const stmtDel = db.prepare('DELETE FROM invitations WHERE id = ?');
+  let deleted = 0, forbidden = 0, missing = 0;
+  const tx = db.transaction(() => {
+    for (const id of ids) {
+      const row = stmtGet.get(id);
+      if (!row) { missing++; continue; }
+      if (!canAccessEvent(req.user, row.event_id)) { forbidden++; continue; }
+      stmtDel.run(id);
+      deleted++;
+    }
+  });
+  tx();
+  res.json({ deleted, forbidden, missing });
+});
+
+// ---------- BULK REPRINT (ZIP) ----------
+router.post('/invitations/reprint', requireAuth, async (req, res) => {
+  try {
+    const ids = Array.isArray(req.body?.ids) ? req.body.ids.filter((s) => typeof s === 'string') : [];
+    const kind = ['pdf', 'jpg', 'jpeg', 'png'].includes(req.body?.kind) ? req.body.kind : 'pdf';
+    const format = req.body?.format === 'landscape' ? 'landscape'
+                 : req.body?.format === 'a5' ? 'a5' : 'portrait';
+    if (!ids.length) return res.status(400).json({ error: 'ids requis' });
+
+    // Charger + filtrer par accès
+    const stmt = db.prepare('SELECT id, code, full_name, event_id FROM invitations WHERE id = ?');
+    const invs = [];
+    for (const id of ids) {
+      const row = stmt.get(id);
+      if (!row) continue;
+      if (!canAccessEvent(req.user, row.event_id)) continue;
+      invs.push(row);
+    }
+    if (!invs.length) return res.status(404).json({ error: 'Aucune invitation accessible' });
+
+    // Cas 1 seule : renvoyer le fichier directement (pas de ZIP)
+    if (invs.length === 1) {
+      const inv = invs[0];
+      const filename = `invitation-${safeName(inv)}`;
+      if (kind === 'pdf') {
+        const buf = await renderPdf({ webUrl: WEB_URL, code: inv.code, format });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
+        return res.send(buf);
+      }
+      if (kind === 'png') {
+        const buf = await renderPng({ webUrl: WEB_URL, code: inv.code, format });
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.png"`);
+        return res.send(buf);
+      }
+      const buf = await renderJpeg({ webUrl: WEB_URL, code: inv.code, format, quality: 95 });
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}.jpg"`);
+      return res.send(buf);
+    }
+
+    // Cas plusieurs : ZIP
+    const ev = getEventById(invs[0].event_id);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition',
+      `attachment; filename="reimpression-${ev?.bride_name || 'invitations'}-${ev?.groom_name || ''}.zip"`
+        .replace(/[^\x20-\x7e";=.\-]/g, '_'));
+    const archive = new ZipArchive({ zlib: { level: 6 } });
+    archive.on('error', (e) => { console.error('[zip]', e); try { res.end(); } catch { /* noop */ } });
+    archive.pipe(res);
+
+    for (const inv of invs) {
+      try {
+        let buf, ext;
+        if (kind === 'pdf')      { buf = await renderPdf({ webUrl: WEB_URL, code: inv.code, format }); ext = 'pdf'; }
+        else if (kind === 'png') { buf = await renderPng({ webUrl: WEB_URL, code: inv.code, format }); ext = 'png'; }
+        else                     { buf = await renderJpeg({ webUrl: WEB_URL, code: inv.code, format, quality: 95 }); ext = 'jpg'; }
+        archive.append(buf, { name: `${safeName(inv) || 'invitation'}-${inv.code.slice(0, 6)}.${ext}` });
+      } catch (e) {
+        console.error('[reprint]', inv.code, e.message);
+        archive.append(`Erreur génération: ${e.message}`, { name: `ERREUR-${inv.code}.txt` });
+      }
+    }
+    await archive.finalize();
+  } catch (err) {
+    console.error('[reprint]', err);
+    if (!res.headersSent) res.status(500).json({ error: String(err.message || err) });
+  }
+});
+
 // ---------- SCAN ----------
 router.post('/scan', requireAdminOrController, (req, res) => {
   const { payload, scanner_label } = req.body || {};

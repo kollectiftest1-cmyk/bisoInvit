@@ -60,6 +60,33 @@ export const api = {
   getInvitationByCode: (code) => request(`/api/invitations/code/${code}`),
   createInvitation: (data) => request('/api/invitations', { method: 'POST', body: data }),
   deleteInvitation: (id) => request(`/api/invitations/${id}`, { method: 'DELETE' }),
+  bulkDeleteInvitations: (ids) =>
+    request('/api/invitations/bulk-delete', { method: 'POST', body: { ids } }),
+  reprintInvitations: async (ids, kind = 'pdf', format = 'portrait') => {
+    const token = getToken();
+    const res = await fetch(`${API_URL}/api/invitations/reprint`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ ids, kind, format }),
+    });
+    if (!res.ok) {
+      let msg = 'Échec réimpression';
+      try { const j = await res.json(); msg = j.error || msg; } catch { /* noop */ }
+      throw new Error(msg);
+    }
+    const blob = await res.blob();
+    const disp = res.headers.get('Content-Disposition') || '';
+    const m = /filename="?([^"]+)"?/i.exec(disp);
+    const filename = m ? m[1] : `invitations.${kind === 'jpg' ? 'jpg' : kind === 'png' ? 'png' : kind === 'pdf' ? 'pdf' : 'zip'}`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
   // stats
   scanStats: (eventId) => request(`/api/scan/stats?event_id=${encodeURIComponent(eventId)}`),
   // controllers
