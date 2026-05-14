@@ -1,6 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
+
+function norm(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
 
 export default function EventDetail() {
   const { id } = useParams();
@@ -12,6 +16,8 @@ export default function EventDetail() {
   const [kind, setKind] = useState('pdf');
   const [format, setFormat] = useState('portrait');
   const [busy, setBusy] = useState(false);
+  const [search, setSearch] = useState('');
+  const [onlySelected, setOnlySelected] = useState(false);
 
   const load = async () => {
     try {
@@ -39,10 +45,36 @@ export default function EventDetail() {
       return next;
     });
   };
+  // Filtre : recherche sur nom / téléphone / emplacement / statut / code
+  const filtered = useMemo(() => {
+    const q = norm(search.trim());
+    let list = invitations;
+    if (q) {
+      list = list.filter((i) =>
+        norm(i.full_name).includes(q)
+        || norm(i.table_number).includes(q)
+        || norm(i.phone).includes(q)
+        || norm(i.statut).includes(q)
+        || norm(i.code).includes(q)
+      );
+    }
+    if (onlySelected) list = list.filter((i) => selected.has(i.id));
+    return list;
+  }, [invitations, search, onlySelected, selected]);
+
   const toggleAll = () => {
-    setSelected((prev) =>
-      prev.size === invitations.length ? new Set() : new Set(invitations.map((i) => i.id))
-    );
+    // Sélectionne / désélectionne tout ce qui est visible (filtré)
+    const visibleIds = filtered.map((i) => i.id);
+    const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((vid) => selected.has(vid));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        for (const vid of visibleIds) next.delete(vid);
+      } else {
+        for (const vid of visibleIds) next.add(vid);
+      }
+      return next;
+    });
   };
 
   const onBulkReprint = async () => {
@@ -76,8 +108,10 @@ export default function EventDetail() {
   if (error) return <div className="container"><div className="card">{error}</div></div>;
   if (!event) return <div className="center"><div className="spinner" /></div>;
 
-  const allChecked = invitations.length > 0 && selected.size === invitations.length;
-  const someChecked = selected.size > 0 && !allChecked;
+  const visibleIds = filtered.map((i) => i.id);
+  const visibleSelectedCount = visibleIds.filter((vid) => selected.has(vid)).length;
+  const allChecked = visibleIds.length > 0 && visibleSelectedCount === visibleIds.length;
+  const someChecked = visibleSelectedCount > 0 && !allChecked;
 
   return (
     <div className="container">
@@ -113,6 +147,30 @@ export default function EventDetail() {
         </div>
       )}
 
+      {/* Barre de recherche */}
+      <div
+        className="card"
+        style={{
+          display: 'flex', alignItems: 'center', gap: '.75rem', flexWrap: 'wrap',
+          padding: '.75rem 1rem', marginBottom: '.75rem',
+        }}
+      >
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Rechercher (nom, téléphone, emplacement, statut…)"
+          style={{ flex: 1, minWidth: 220, padding: '.5rem .75rem', borderRadius: 6, border: '1px solid var(--border, #ddd)' }}
+        />
+        <label style={{ display: 'flex', alignItems: 'center', gap: '.4rem', fontSize: '.9rem' }}>
+          <input type="checkbox" checked={onlySelected} onChange={(e) => setOnlySelected(e.target.checked)} />
+          Sélection uniquement
+        </label>
+        <span style={{ color: 'var(--text-muted)', fontSize: '.85rem' }}>
+          {filtered.length} / {invitations.length} affichée(s){selected.size ? ` · ${selected.size} sélectionnée(s)` : ''}
+        </span>
+      </div>
+
       {selected.size > 0 && (
         <div
           className="card"
@@ -121,6 +179,7 @@ export default function EventDetail() {
             padding: '.75rem 1rem', marginBottom: '.75rem',
             background: 'var(--accent-soft, rgba(184,138,58,0.08))',
             borderColor: 'var(--accent, #b88a3a)',
+            position: 'sticky', top: 0, zIndex: 10,
           }}
         >
           <strong>{selected.size} sélectionnée(s)</strong>
@@ -172,7 +231,10 @@ export default function EventDetail() {
             {invitations.length === 0 && (
               <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Aucune invitation pour l'instant.</td></tr>
             )}
-            {invitations.map((inv) => (
+            {invitations.length > 0 && filtered.length === 0 && (
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Aucun résultat pour « {search} ».</td></tr>
+            )}
+            {filtered.map((inv) => (
               <tr key={inv.id} style={selected.has(inv.id) ? { background: 'rgba(184,138,58,0.06)' } : undefined}>
                 <td>
                   <input
