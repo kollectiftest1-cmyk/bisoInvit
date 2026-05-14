@@ -32,7 +32,13 @@ rsync -a --delete \
   --exclude='uploads' \
   --exclude='.env' \
   "$REPO/backend/" "$API_DIR/"
-cp -r "$REPO/backend/node_modules" "$API_DIR/"
+
+# Synchroniser node_modules (tolérant si déjà identique / symlink)
+if [ "$(readlink -f "$REPO/backend/node_modules" 2>/dev/null || true)" = "$(readlink -f "$API_DIR/node_modules" 2>/dev/null || true)" ] && [ -e "$API_DIR/node_modules" ]; then
+  echo "  node_modules déjà partagé — skip"
+else
+  rsync -a --delete "$REPO/backend/node_modules/" "$API_DIR/node_modules/"
+fi
 
 echo "→ reload pm2"
 pm2 reload bisoinvit-api --update-env
